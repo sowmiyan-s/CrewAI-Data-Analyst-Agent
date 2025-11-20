@@ -142,43 +142,24 @@ def main():
     report_file = Path("index.html")
     report_file.write_text(html_report, encoding="utf-8")
     print(f"\nReport saved: {report_file}")
+    print("Analysis complete! View the report at http://0.0.0.0:5000")
     
-    print("\nServing report at http://0.0.0.0:5000")
+    from http.server import SimpleHTTPRequestHandler
+    from socketserver import ThreadingTCPServer
 
+    class QuietHandler(SimpleHTTPRequestHandler):
+        def log_message(self, format, *args):
+            pass
+
+    server = ThreadingTCPServer(("0.0.0.0", 5000), QuietHandler)
+    
+    print("\nServing report on port 5000...")
     try:
-        from http.server import SimpleHTTPRequestHandler
-        from socketserver import ThreadingTCPServer
-        import threading
-
-        class QuietHandler(SimpleHTTPRequestHandler):
-            def log_message(self, format, *args):
-                pass
-
-        server = ThreadingTCPServer(("0.0.0.0", 5000), QuietHandler)
-
-        def serve():
-            try:
-                server.serve_forever()
-            except KeyboardInterrupt:
-                pass
-
-        t = threading.Thread(target=serve, daemon=True)
-        t.start()
-
-        try:
-            while True:
-                import time
-                time.sleep(1)
-        except KeyboardInterrupt:
-            print("\nStopping server...")
-            server.shutdown()
-            server.server_close()
-            print("Stopped.")
-
-    except Exception as e:
-        print(f"Could not start server: {e}")
-        print("The report is saved at:", report_file.absolute())
-        sys.exit(1)
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print("\nShutting down server...")
+        server.shutdown()
+        server.server_close()
 
 
 if __name__ == "__main__":
