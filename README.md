@@ -51,52 +51,87 @@ python crew.py
 - `outputs/op.py` — collected Python snippets extracted from agent outputs (if any).
 - `index.html` — a human-friendly summary (raw JSON + highlighted, copyable code blocks).
 
-## Tech & Integrations
-
-This project is lightweight and focused on composability. Key technologies:
-
-- `crewai` — orchestration and agent primitives
-- `pandas` — tabular data handling
-- `matplotlib` / `seaborn` — visualization code generation
-- `Ollama` (or compatible LLM HTTP API) — LLM backend used by the agents
-
-### Tech Icons
-
-<p>
-	<img src="assets/badge_pandas.svg" alt="pandas" style="margin-right:8px" />
-	<img src="assets/badge_matplotlib.svg" alt="matplotlib" style="margin-right:8px" />
-	<img src="assets/badge_seaborn.svg" alt="seaborn" style="margin-right:8px" />
-	<img src="assets/badge_ollama.svg" alt="ollama" style="margin-right:8px" />
-</p>
-
-## Views / Screenshots
-
-- The repository includes a responsive `index.html` (rendered after a run) which highlights raw JSON and generated Python snippets. Open it locally to inspect outputs and copy code blocks quickly.
-
 ## Project Structure
 
 ```
-├── agents/               # Agent definitions (cleaner, validator, relation, code_gen, insights)
-├── tools/                # Helper utilities (e.g. dataframe_ops.apply_cleaning)
-├── data/                 # Example input CSVs
-├── outputs/              # Generated code and artifacts (op.py, index.html)
-├── assets/               # Images and SVGs used by README/UI
-├── crew.py               # Entry point that wires agents and kicks off the pipeline
-├── workflows/pipeline.py # Task definitions connecting agents to tasks
+├── agents/               # AI agent definitions and configurations
+│   ├── cleaner.py        # Data cleaning agent
+│   ├── validator.py      # Data validation agent
+│   ├── relation.py       # Relationship analysis agent
+│   ├── code_gen.py       # Code generation agent
+│   └── insights.py       # Insights extraction agent
+├── config/               # Configuration files
+│   ├── llm_config.py     # LLM backend configuration
+│   └── __init__.py
+├── data/                 # Input data directory
+│   └── input.csv         # Default input dataset
+├── outputs/              # Generated outputs
+│   └── op.py             # Generated Python code
+├── tools/                # Utility functions
+│   ├── dataframe_ops.py  # DataFrame operations
+│   └── __init__.py
+├── workflows/            # Workflow definitions
+│   ├── pipeline.py       # Main analysis pipeline
+│   └── __init__.py
+├── assets/               # Static assets for documentation
+├── crew.py               # Main entry point
+├── requirements.txt      # Python dependencies
+├── README.md             # This file
+├── USAGE.md              # Detailed usage guide
+├── CHANGELOG.md          # Version history
+└── LICENSE               # License information
 ```
 
 ## Customization
 
-- Edit agents in `agents/*.py` to change model, `base_url`, or prompt backstories.
-- Add or change `Task` definitions in `workflows/pipeline.py` to adjust behavior or add steps.
+### Agent Configuration
+Modify agent behaviors by editing files in `agents/`:
+- Change LLM models in `config/llm_config.py`
+- Update agent prompts and backstories
+- Adjust agent roles and goals
 
-## Next steps I can help with
+### Pipeline Extension
+Extend analysis capabilities:
+- Add new agents for specific tasks
+- Modify `workflows/pipeline.py` for custom workflows
+- Integrate additional data sources
 
-- Embed extracted code directly into `index.html` from `crew.py` after a run.
-- Add a sample demo script that applies `tools/dataframe_ops.apply_cleaning` to `data/input.csv` and writes example outputs.
-- Create a `docker-compose` or local setup script for running Ollama and the pipeline together.
+### Tool Integration
+Add custom utilities in `tools/`:
+- Data preprocessing functions
+- Custom visualization generators
+- Export utilities for different formats
+
+## Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+### Development Setup
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/your-feature`
+3. Make your changes and add tests
+4. Submit a pull request
+
+### Guidelines
+- Follow PEP 8 style guidelines
+- Add tests for new features
+- Update documentation as needed
+- Ensure compatibility with Python 3.8+
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-If you want a different visual style (dark/light), more badges, or real screenshot images instead of SVG placeholders, tell me which style and I will add them.
+## Support
+
+- 📖 [Usage Guide](USAGE.md)
+- 📋 [Changelog](CHANGELOG.md)
+- 🐛 [Issues](https://github.com/yourusername/CrewAI-Data-Analyst-Agent/issues)
+- 💬 [Discussions](https://github.com/yourusername/CrewAI-Data-Analyst-Agent/discussions)
+
+---
+
+*Built with ❤️ using CrewAI and modern Python practices*
 
