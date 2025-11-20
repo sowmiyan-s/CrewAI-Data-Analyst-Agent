@@ -74,36 +74,58 @@ def main():
         verbose=True,
     )
 
-    output = crew.kickoff()
-
-    output_dict = {}
-    if isinstance(output, dict):
-        output_dict = output
-    elif hasattr(output, '__dict__'):
-        output_dict = output.__dict__
+    result = crew.kickoff()
     
+    # Extract task outputs
+    task_outputs = {}
+    
+    # Try to extract from crew's task outputs
+    if hasattr(crew, 'tasks'):
+        for i, task in enumerate(crew.tasks):
+            if hasattr(task, 'output') and task.output:
+                task_name = task.description.split()[0].lower()
+                if hasattr(task.output, 'raw'):
+                    task_outputs[task_name] = str(task.output.raw)
+                else:
+                    task_outputs[task_name] = str(task.output)
+    
+    # Fallback: use the final result
+    if hasattr(result, 'raw'):
+        final_output = str(result.raw)
+    else:
+        final_output = str(result)
+    
+    # Extract individual outputs
+    clean_output = task_outputs.get('clean', '')
+    validate_output = task_outputs.get('validate', '')
+    relation_output = task_outputs.get('identify', '')
+    code_output = task_outputs.get('generate', '')
+    insights_output = task_outputs.get('produce', final_output)
+    
+    # Save code output if available
     code_path = output_dir / "op.py"
-    code_output = ""
-    if code_path.exists() and code_path.stat().st_size > 0:
-        try:
-            code_output = code_path.read_text(encoding="utf-8")
-        except Exception:
-            code_output = ""
-
-    df_head = df.head().to_string(index=False)
+    if code_output and '```python' in code_output:
+        import re
+        code_match = re.search(r'```python\n(.*?)\n```', code_output, re.DOTALL)
+        if code_match:
+            code_path.write_text(code_match.group(1), encoding="utf-8")
+    
+    df_head = df.head(10).to_string(index=False)
     
     def prettify(section, content):
-        if content:
+        if content and content.strip():
+            # Escape HTML entities
+            content = str(content).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
             return f"<h2>{section}</h2><pre><code>{content}</code></pre>"
-        return f"<h2>{section}</h2><em>No data.</em>"
+        return f"<h2>{section}</h2><p><em>No data available</em></p>"
     
     html_blocks = []
-    html_blocks.append(prettify("First 5 Rows of Dataset", df_head))
-    html_blocks.append(prettify("Cleaning Steps", output_dict.get('clean', '')))
-    html_blocks.append(prettify("Validation Result", output_dict.get('validate', '')))
-    html_blocks.append(prettify("Identified Column Relations", output_dict.get('relation', '')))
-    html_blocks.append(prettify("Generated Python Code (op.py)", code_output))
-    html_blocks.append(prettify("Generated Insights", output_dict.get('insight', '')))
+    html_blocks.append(prettify("Dataset Preview (First 10 Rows)", df_head))
+    html_blocks.append(prettify("1. Data Cleaning Steps", clean_output))
+    html_blocks.append(prettify("2. Dataset Validation Result", validate_output))
+    html_blocks.append(prettify("3. Identified Column Relations", relation_output))
+    html_blocks.append(prettify("4. Generated Visualization Code", code_output))
+    html_blocks.append(prettify("5. Data Insights", insights_output))
     
     final_blocks = "\n".join(html_blocks)
 
@@ -112,28 +134,113 @@ def main():
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CrewAI Analysis</title>
+    <title>CrewAI Data Analysis Report</title>
     <style>
+        * {{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }}
         body {{
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            margin: 0; padding: 20px; background: #f5f5f5;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
         }}
         .container {{
-            max-width: 900px; margin: 0 auto; background: white;
-            border-radius: 8px; padding: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }}
-        h1 {{ color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; }}
-        .success {{ background: #d4edda; border-left: 4px solid #28a745; padding: 10px; margin: 10px 0; }}
-        pre {{ background: #f8f9fa; padding: 15px; overflow-x: auto; border-radius: 4px; }}
-        code {{ font-family: 'Courier New', monospace; color: #555; }}
-        img {{ display: block; margin: 1em auto; }}
+        h1 {{
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }}
+        .header {{
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }}
+        .success {{
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-weight: 500;
+            box-shadow: 0 4px 15px rgba(17, 153, 142, 0.3);
+        }}
+        h2 {{
+            color: #34495e;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ecf0f1;
+        }}
+        pre {{
+            background: #f8f9fa;
+            padding: 20px;
+            overflow-x: auto;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            margin: 15px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }}
+        code {{
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            color: #2c3e50;
+            font-size: 0.9em;
+            line-height: 1.6;
+        }}
+        .footer {{
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #ecf0f1;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }}
+        .info-badge {{
+            display: inline-block;
+            background: #3498db;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            margin: 5px;
+        }}
+        p em {{
+            color: #95a5a6;
+            font-style: italic;
+        }}
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>CrewAI Analysis Complete</h1>
-        <div class="success">Pipeline executed successfully on {len(df)} rows</div>
+        <div class="header">
+            <h1>🤖 CrewAI Data Analysis Report</h1>
+            <div>
+                <span class="info-badge">Dataset: {len(df)} rows × {len(df.columns)} columns</span>
+                <span class="info-badge">5 AI Agents</span>
+                <span class="info-badge">Powered by Groq</span>
+            </div>
+        </div>
+        <div class="success">
+            ✅ Analysis pipeline completed successfully!
+        </div>
         {final_blocks}
+        <div class="footer">
+            <p>Generated by CrewAI Multi-Agent System | LLM: Groq (llama-3.3-70b-versatile)</p>
+        </div>
     </div>
 </body>
 </html>

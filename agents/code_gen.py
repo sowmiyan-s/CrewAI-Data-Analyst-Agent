@@ -1,5 +1,5 @@
 from crewai import Agent, LLM
-import os
+from config.llm_config import get_llm_params
 
 code_gen_agent = Agent(
     name="Code Generator",
@@ -7,9 +7,6 @@ code_gen_agent = Agent(
     goal="Generate matplotlib code for the provided chart relations.",
     backstory="Python developer focused on matplotlib.",
     allow_delegation=False,
-    llm=LLM(
-        model="groq/llama-3.3-70b-versatile",
-        api_key=os.getenv("GROQ_API_KEY")
-    ),
+    llm=LLM(**get_llm_params()),
     verbose=True
 )
