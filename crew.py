@@ -2,6 +2,7 @@
 """Simple CrewAI Data Analysis Pipeline"""
 import logging
 import sys
+import os
 from pathlib import Path
 import pandas as pd
 from dotenv import load_dotenv
@@ -10,6 +11,12 @@ load_dotenv()
 
 logging.getLogger("urllib3").setLevel(logging.ERROR)
 logging.getLogger("opentelemetry").setLevel(logging.ERROR)
+
+if not os.getenv("GROQ_API_KEY"):
+    print("ERROR: GROQ_API_KEY environment variable is not set.")
+    print("Please set your Groq API key in the Replit Secrets tab.")
+    print("Get your API key from: https://console.groq.com/keys")
+    sys.exit(1)
 
 try:
     from crewai import Crew
