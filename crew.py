@@ -4,6 +4,9 @@ import logging
 import sys
 from pathlib import Path
 import pandas as pd
+from dotenv import load_dotenv
+
+load_dotenv()
 
 logging.getLogger("urllib3").setLevel(logging.ERROR)
 logging.getLogger("opentelemetry").setLevel(logging.ERROR)
