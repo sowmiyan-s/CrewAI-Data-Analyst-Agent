@@ -1,4 +1,5 @@
 from crewai import Agent, LLM
+import os
 
 code_gen_agent = Agent(
     name="Code Generator",
@@ -7,8 +8,8 @@ code_gen_agent = Agent(
     backstory="Python developer focused on matplotlib.",
     allow_delegation=False,
     llm=LLM(
-        model="ollama/llama3",
-        base_url="http://localhost:11434"
+        model="groq/llama-3.3-70b-versatile",
+        api_key=os.getenv("GROQ_API_KEY")
     ),
     verbose=True
 )
