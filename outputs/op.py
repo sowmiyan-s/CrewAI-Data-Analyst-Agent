@@ -2,32 +2,50 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 import numpy as np
-
-# Assuming we have a DataFrame named 'df'
-# Replace missing values in the 'age' column with the mean age
-df['age'] = df['age'].fillna(df['age'].mean())
-
-# Normalize the 'income' column by scaling it between 0 and 1
 from sklearn.preprocessing import MinMaxScaler
+
+# Sample dataset
+np.random.seed(0)
+df = pd.DataFrame({
+    'Age': np.random.randint(20, 60, 100),
+    'Salary': np.random.randint(50000, 150000, 100),
+    'Experience': np.random.randint(1, 10, 100),
+    'Department': np.random.choice(['Sales', 'Marketing', 'IT'], 100)
+})
+
+# Replace missing values in the 'Age' column with the mean age
+df['Age'].fillna(df['Age'].mean(), inplace=True)
+
+# Scale the 'Salary' column using Min-Max Scaler
 scaler = MinMaxScaler()
-df['income'] = scaler.fit_transform(df[['income']])
+df['Salary'] = scaler.fit_transform(df[['Salary']])
 
-# Remove duplicate rows based on all columns
-df = df.drop_duplicates()
+# Drop duplicate rows based on all columns
+df.drop_duplicates(inplace=True)
 
-# One-hot encode the 'gender' and 'occupation' columns
-df = pd.get_dummies(df, columns=['gender', 'occupation'])
+# One-hot encode the 'Department' column
+pd.get_dummies(df, columns=['Department'], drop_first=True, inplace=True)
 
-# Remove rows with outlier values in the 'income' column using the IQR method
-Q1 = df['income'].quantile(0.25)
-Q3 = df['income'].quantile(0.75)
+# Remove rows with outliers in the 'Experience' column using IQR method
+Q1 = df['Experience'].quantile(0.25)
+Q3 = df['Experience'].quantile(0.75)
 IQR = Q3 - Q1
-df = df[~((df['income'] < (Q1 - 1.5 * IQR)) | (df['income'] > (Q3 + 1.5 * IQR)))]
+df = df[~((df['Experience'] < (Q1 - 1.5 * IQR)) | (df['Experience'] > (Q3 + 1.5 * IQR)))]
 
-# Create a scatter plot
-plt.figure(figsize=(10,6))
-sns.scatterplot(x='age', y='income', data=df)
-plt.title('Scatter plot of age vs income')
-plt.xlabel('Age')
-plt.ylabel('Income')
+# Plotting
+plt.figure(figsize=(15, 5))
+
+plt.subplot(1, 3, 1)
+sns.scatterplot(x='Age', y='Salary', data=df)
+plt.title('Age vs Salary')
+
+plt.subplot(1, 3, 2)
+sns.scatterplot(x='Age', y='Experience', data=df)
+plt.title('Age vs Experience')
+
+plt.subplot(1, 3, 3)
+sns.scatterplot(x='Salary', y='Experience', data=df)
+plt.title('Salary vs Experience')
+
+plt.tight_layout()
 plt.show()

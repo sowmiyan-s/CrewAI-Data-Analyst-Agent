@@ -1,10 +1,10 @@
-#!/usr/bin/env python3
-"""Simple CrewAI Data Analysis Pipeline"""
+
 import logging
 import sys
 import os
 from pathlib import Path
 import pandas as pd
+import webbrowser
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -14,8 +14,6 @@ logging.getLogger("opentelemetry").setLevel(logging.ERROR)
 
 if not os.getenv("GROQ_API_KEY"):
     print("ERROR: GROQ_API_KEY environment variable is not set.")
-    print("Please set your Groq API key in the Replit Secrets tab.")
-    print("Get your API key from: https://console.groq.com/keys")
     sys.exit(1)
 
 try:
@@ -41,7 +39,7 @@ def main():
 
     print(f"Loaded {len(df)} rows, {len(df.columns)} columns")
     print(f"Columns: {', '.join(df.columns[:10])}...")
-    print("\nRunning full pipeline (clean -> validate -> relation -> code -> insights)\n")
+
 
     from agents.cleaner import cleaner_agent
     from agents.validator import validator_agent
@@ -76,10 +74,10 @@ def main():
 
     result = crew.kickoff()
     
-    # Extract task outputs
+
     task_outputs = {}
     
-    # Try to extract from crew's task outputs
+   
     if hasattr(crew, 'tasks'):
         for i, task in enumerate(crew.tasks):
             if hasattr(task, 'output') and task.output:
@@ -89,20 +87,20 @@ def main():
                 else:
                     task_outputs[task_name] = str(task.output)
     
-    # Fallback: use the final result
+ 
     if hasattr(result, 'raw'):
         final_output = str(result.raw)
     else:
         final_output = str(result)
     
-    # Extract individual outputs
+ 
     clean_output = task_outputs.get('clean', '')
     validate_output = task_outputs.get('validate', '')
     relation_output = task_outputs.get('identify', '')
     code_output = task_outputs.get('generate', '')
     insights_output = task_outputs.get('produce', final_output)
     
-    # Save code output if available
+
     code_path = output_dir / "op.py"
     if code_output and '```python' in code_output:
         import re
@@ -114,7 +112,7 @@ def main():
     
     def prettify(section, content):
         if content and content.strip():
-            # Escape HTML entities
+            
             content = str(content).replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
             return f"<h2>{section}</h2><pre><code>{content}</code></pre>"
         return f"<h2>{section}</h2><p><em>No data available</em></p>"
@@ -227,7 +225,7 @@ def main():
 <body>
     <div class="container">
         <div class="header">
-            <h1>🤖 CrewAI Data Analysis Report</h1>
+            <h1>CrewAI Data Analysis Report</h1>
             <div>
                 <span class="info-badge">Dataset: {len(df)} rows × {len(df.columns)} columns</span>
                 <span class="info-badge">5 AI Agents</span>
@@ -249,24 +247,8 @@ def main():
     report_file = Path("index.html")
     report_file.write_text(html_report, encoding="utf-8")
     print(f"\nReport saved: {report_file}")
-    print("Analysis complete! View the report at http://0.0.0.0:5000")
-    
-    from http.server import SimpleHTTPRequestHandler
-    from socketserver import ThreadingTCPServer
-
-    class QuietHandler(SimpleHTTPRequestHandler):
-        def log_message(self, format, *args):
-            pass
-
-    server = ThreadingTCPServer(("0.0.0.0", 5000), QuietHandler)
-    
-    print("\nServing report on port 5000...")
-    try:
-        server.serve_forever()
-    except KeyboardInterrupt:
-        print("\nShutting down server...")
-        server.shutdown()
-        server.server_close()
+    print("Analysis complete! Opening report in default browser...")
+    webbrowser.open("index.html")
 
 
 if __name__ == "__main__":
